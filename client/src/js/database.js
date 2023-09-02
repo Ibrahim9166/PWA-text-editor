@@ -12,35 +12,32 @@ const initdb = async () =>
     },
   });
 
-// TODO: Add logic to a method that accepts some content and adds it to the database
-export const putDb = async (content) => console.error('putDb not implemented');
-const db = await openDB('jate', 1);
+  const dbPromise = initdb();
 
-const transaction = db.transaction('jate', 'readwrite');
-const obStore = transaction.objectStore('jate');
-
-//return 0 if empty
-const count = (await obStore.get('counter')) || 0;
-count++
-const result = await obStore.put({ id: count, value: content });
-
-await transaction.done;
-
-return result;
-
-
-// TODO: Add logic for a method that gets all the content from the database
-export const getDb = async () => console.error('getDb not implemented');
-const db = await openDB('jate', 1);
-
-  const transaction = db.transaction('jate', 'readwrite');
-  const obStore = transaction.objectStore('jate');
+  // Function to add content to the database
+  export const putDb = async (content) => {
+    const db = await dbPromise;
+    const transaction = db.transaction('jate', 'readwrite');
+    const obStore = transaction.objectStore('jate');
   
-  const result = await obStore.getAll();
-
-  await transaction.done;
-
-  return result.value;
-}
+    const count = await obStore.get('counter') || 0;
+    const newCount = count + 1;
+  
+    await obStore.put(newCount, 'counter'); // Update the counter
+    const result = await obStore.put({ id: newCount, value: content });
+  
+    await transaction.done;
+    return result;
+  };
+  
+  // Function to get all content from the database
+  export const getDb = async () => {
+    const db = await dbPromise;
+    const transaction = db.transaction('jate', 'readonly');
+    const obStore = transaction.objectStore('jate');
+    const result = await obStore.getAll();
+    await transaction.done;
+    return result;
+  };
 
 initdb();
